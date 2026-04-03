@@ -13,3 +13,10 @@ zip = "8.5.0"
 futures-util = "0.3"
 async-trait = "0.1.89"
 bytes = "1.11.1"
+sha1 = "0.11.0"
+hex = "0.4.3"
+futures = "0.3.32"
+
+[[example]]
+name = "simple_launcher"
+path = "src/examples/simple_launcher_1.21.1.rs"
