@@ -1,5 +1,6 @@
 use crate::dirs::MinecraftDirs;
 use crate::downloader::Downloader;
+use crate::models::OxiditeError;
 use crate::models::assets::AssetIndex;
 use crate::models::{ProgressReport, piston_meta::PistonMeta};
 use crate::sources::Sources;
@@ -13,7 +14,7 @@ pub async fn download_all<F>(
     dirs: &MinecraftDirs,
     dl: &Downloader,
     on_progress: F,
-) -> Result<(), Box<dyn std::error::Error>>
+) -> Result<(), OxiditeError>
 where
     F: Fn(ProgressReport) + Send + Sync + 'static,
 {

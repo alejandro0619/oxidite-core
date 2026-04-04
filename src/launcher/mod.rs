@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 use crate::models::piston_meta::PistonMeta;
 use crate::dirs::MinecraftDirs;
 
@@ -68,7 +67,7 @@ impl LaunchSettings {
     // 4. Args for the game
     cmd.arg("--username").arg(&self.username);
     cmd.arg("--version").arg(&meta.id);
-    cmd.arg("--gameDir").arg(&dirs.base);
+    cmd.arg("--gameDir").arg(dirs.base.to_string_lossy().as_ref());
     cmd.arg("--assetsDir").arg(dirs.assets_dir());
     cmd.arg("--assetIndex").arg(&meta.asset_index.id);
     cmd.arg("--uuid").arg(&self.uuid);

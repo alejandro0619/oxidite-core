@@ -1,3 +1,4 @@
+use oxidite_core::models::OxiditeConfig;
 use oxidite_core::{Oxidite, LaunchSettings}; 
 use std::path::PathBuf;
 use std::io::{self, Write};
@@ -5,8 +6,13 @@ use std::io::{self, Write};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 1. Initial config
-    let base_path = PathBuf::from("C:\\.minecraft_oxidite");
-    let launcher = Oxidite::new(base_path);
+    let launcher = Oxidite::new(OxiditeConfig {
+        base_path: PathBuf::from("C:\\.minecraft_oxidite"),
+        java_path: "java".to_string(), // Or the absolute path to your Java executable if needed
+        max_parallel_downloads: 20,    // How many files to download in paralle, this applies when downloading the assets and the libraries
+        memory_gb: 4,                  // How many GB of RAM to allocate to Minecraft
+        extra_jvm_args: vec!["-XX:+UseG1GC".to_string()], // Extra JVM arguments to optimize performance, you can add more if you want
+    });
     
     let version_id = "1.21.1"; // Just to try
     println!("🔍 Initializing Oxidite for version {}...", version_id);

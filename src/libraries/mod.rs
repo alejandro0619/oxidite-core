@@ -1,4 +1,5 @@
 use crate::downloader::Downloader;
+use crate::models::OxiditeError;
 use crate::models::{ProgressReport, piston_meta::PistonMeta};
 use crate::sources::VerifiedFiledSource;
 use futures::stream::{self, StreamExt};
@@ -11,7 +12,7 @@ pub async fn download_all<F>(
     base_path: &Path,
     dl: &Downloader,
     on_progress: F,
-) -> Result<(), Box<dyn std::error::Error>>
+) -> Result<(), OxiditeError>
 where
     F: Fn(ProgressReport) + Send + Sync + 'static,
 {

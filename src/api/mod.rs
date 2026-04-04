@@ -1,5 +1,5 @@
 use crate::downloader::Downloader;
-use crate::models::{Manifest, PistonMeta};
+use crate::models::{Manifest, OxiditeError, PistonMeta};
 use crate::sources::Sources;
 
 pub struct Api {
@@ -15,7 +15,7 @@ impl Api {
 }
 
 impl Api {
-    pub async fn get_manifest(&self) -> Result<Manifest, Box<dyn std::error::Error>> {
+    pub async fn get_manifest(&self) -> Result<Manifest, OxiditeError> {
         self.downloader.fetch(Sources::Manifest).await
     }
 
@@ -23,7 +23,7 @@ impl Api {
         &self,
         hash: &str,
         id: &str,
-    ) -> Result<PistonMeta, Box<dyn std::error::Error>> {
+    ) -> Result<PistonMeta, OxiditeError> {
         self.downloader
             .fetch(Sources::PistonMeta {
                 hash: hash.to_string(),

@@ -1,4 +1,4 @@
-use crate::sources::{AsUrl, DownloadTarget};
+use crate::{models::OxiditeError, sources::{AsUrl, DownloadTarget}};
 use reqwest::Client;
 use std::time::Duration;
 
@@ -17,14 +17,14 @@ impl Downloader {
         }
     }
 
-    pub async fn fetch<T>(&self, source: impl AsUrl) -> Result<T, Box<dyn std::error::Error>> 
+    pub async fn fetch<T>(&self, source: impl AsUrl) -> Result<T, OxiditeError> 
     where T: serde::de::DeserializeOwned 
     {
         let bytes = self.client.get(source.as_url()).send().await?.bytes().await?;
         Ok(serde_json::from_slice::<T>(&bytes)?)
     }
 
-    pub async fn download(&self, target: impl DownloadTarget) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn download(&self, target: impl DownloadTarget) -> Result<(), OxiditeError> {
         let response = self.client.get(target.url()).send().await?;
         let bytes = response.bytes().await?;
         target.process(bytes).await

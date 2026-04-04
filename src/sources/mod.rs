@@ -2,11 +2,14 @@ use std::path::PathBuf;
 use async_trait::async_trait;
 use sha1::{Sha1, Digest};
 
+use crate::models::OxiditeError;
+
+
 
 #[async_trait]
 pub trait DownloadTarget {
     fn url(&self) -> String;
-    async fn process(&self, bytes: bytes::Bytes) -> Result<(), Box<dyn std::error::Error>>;
+    async fn process(&self, bytes: bytes::Bytes) -> Result<(), OxiditeError>;
 }
 
 // Impl for files to be saved on disk
@@ -22,14 +25,17 @@ impl DownloadTarget for VerifiedFiledSource {
         self.url.clone()
     }
 
-    async fn process(&self, bytes: bytes::Bytes) -> Result<(), Box<dyn std::error::Error>> {
+    async fn process(&self, bytes: bytes::Bytes) -> Result<(), OxiditeError> {
         let mut hasher = Sha1::new();
         hasher.update(&bytes);
 
         let actual_hash = hex::encode(hasher.finalize());
 
         if actual_hash != self.expected_hash {
-            return Err(format!("Hash mismatch for {}: expected {}, got {}", self.url, self.expected_hash, actual_hash).into());
+            return Err(OxiditeError::HashMismatch {
+                expected: self.expected_hash.clone(),
+                found: actual_hash,
+            });
         }
 
         if let Some(parent) = self.dest.parent() {
