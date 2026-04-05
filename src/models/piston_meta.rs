@@ -21,7 +21,16 @@ pub struct PistonMeta {
     #[serde(rename = "type")]
     pub type_field: String,
 }
-
+impl PistonMeta {
+    /// Returns a user-friendly message about Java compatibility based on the user's current Java version.
+    pub fn get_java_status(&self, current_version: i64) -> String {
+        if current_version >= self.java_version.major_version {
+            format!("Compatible: Java {} detected (minimum {})", current_version, self.java_version.major_version)
+        } else {
+            format!("Incompatible: Java {} is required, but you have {}", self.java_version.major_version, current_version)
+        }
+    }
+}
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Arguments {

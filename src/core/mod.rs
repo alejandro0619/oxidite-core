@@ -135,3 +135,38 @@ impl Oxidite {
         Ok(())
     }
 }
+impl Oxidite {
+    /// Obtains all versions Releases or Snapshots
+    pub async fn get_versions(&self, releases_only: bool) -> Result<Vec<crate::models::Version>, OxiditeError> {
+        self.api.get_filtered_versions(releases_only).await
+    }
+
+    /// Look for a specific version by its ID (e.g. "1.20.1") and return its metadata if found
+    pub async fn find_version(&self, id: &str) -> Result<Option<crate::models::Version>, OxiditeError> {
+        self.api.find_version_by_id(id).await
+    }
+
+    /// check if the given Java major version (e.g. 17) is compatible with the Minecraft version specified by version_id (e.g. "1.20.1").
+    pub async fn check_compatibility(&self, version_id: &str, user_java_major: i64) -> Result<bool, OxiditeError> {
+
+        let version = self.find_version(version_id).await?
+            .ok_or_else(|| OxiditeError::VersionNotFound(version_id.to_string()))?;
+
+        let hash = version.get_hash()
+            .ok_or_else(|| OxiditeError::MetadataError("No hash found in manifest".into()))?;
+
+        self.api.check_java_compatibility(&hash, &version.id, user_java_major).await
+    }
+
+    /// Utility method to directly get the required Java major version for a given Minecraft version ID. Returns an error if the version is not found or if there's an issue with the metadata.
+    pub async fn get_required_java_version(&self, version_id: &str) -> Result<i64, OxiditeError> {
+        let version = self.find_version(version_id).await?
+            .ok_or_else(|| OxiditeError::VersionNotFound(version_id.to_string()))?;
+        
+        let hash = version.get_hash()
+            .ok_or_else(|| OxiditeError::MetadataError("Hash missing".into()))?;
+
+        let meta = self.api.get_version_metadata(&hash, &version.id).await?;
+        Ok(meta.java_version.major_version)
+    }
+}
