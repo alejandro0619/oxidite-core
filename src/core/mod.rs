@@ -4,7 +4,7 @@ use crate::launcher::LaunchSettings;
 use crate::models::PistonMeta;
 use crate::{api::Api, dirs::MinecraftDirs, sources::VerifiedFiledSource};
 use crate::models::internal::{OxiditeConfig, OxiditeError};
-
+use crate::instance::GameInstance;
 pub struct Oxidite {
     pub config: OxiditeConfig,
     api: Api,
@@ -116,23 +116,27 @@ impl Oxidite {
         &self,
         version_id: &str,
         settings: LaunchSettings,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<GameInstance, Box<dyn std::error::Error>> {
         let manifest = self.api.get_manifest().await?;
         let entry = manifest
             .find_version(version_id)
             .ok_or("Version not found")?;
+        
         let hash = entry.get_hash().ok_or("Hash not found")?;
         let meta = self.api.get_version_metadata(&hash, version_id).await?;
-
+        
         let mut command = settings.create_command(&meta, &self.dirs)?;
-        command.current_dir(&self.dirs.base); // So the logs, screenshot, crash reports are generated in the correct place.
-        command.stdout(std::process::Stdio::inherit());
+        command.current_dir(&self.dirs.base);
+        command.stdout(std::process::Stdio::piped());
         command.stderr(std::process::Stdio::inherit());
 
-        let mut child = command.spawn()?;
-        child.wait()?;
+        // Spwn the process
+        let child = command.spawn()?;
 
-        Ok(())
+        // Create the GameInstance struct with the child process and return it immediately
+        
+
+        Ok(GameInstance::new(version_id.to_string(), settings.username.clone(), child))
     }
 }
 impl Oxidite {

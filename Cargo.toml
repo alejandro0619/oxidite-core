@@ -25,3 +25,7 @@ path = "src/examples/simple_launcher_1.21.1.rs"
 [[example]]
 name = "check_compat"
 path = "src/examples/check_compat.rs"
+
+[[example]]
+name = "monitor_lifecycle"
+path = "src/examples/monitor_lifecycle.rs"

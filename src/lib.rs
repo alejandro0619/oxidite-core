@@ -8,7 +8,7 @@ pub mod downloader;
 pub mod sources;
 pub mod libraries;
 pub mod assets;
-
+pub mod instance;
 
 pub use crate::core::Oxidite;
 pub use crate::launcher::LaunchSettings;
