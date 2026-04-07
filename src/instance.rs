@@ -1,7 +1,7 @@
-use std::process::{Child};
-use std::time::{Instant};
 use std::io::{BufRead, BufReader};
+use std::process::Child;
 use std::sync::mpsc::{self, Receiver};
+use std::time::Instant;
 
 pub struct GameInstance {
     pub version: String,
@@ -22,28 +22,32 @@ pub enum GameStatus {
 impl GameInstance {
     pub fn new(version: String, username: String, mut process: Child) -> Self {
         let (tx, rx) = mpsc::channel();
-        
+
         // Captre the stdout of the Minecraft process to parse logs
         if let Some(stdout) = process.stdout.take() {
             let reader = BufReader::new(stdout);
-            
+
             // Create a background thread to parse the logs and send status updates
             std::thread::spawn(move || {
                 for line in reader.lines() {
                     if let Ok(l) = line {
-                        // Log pasing 
+                        // Log pasing
                         if l.contains("Stopping @") || l.contains("Saving chunks for level") {
                             let _ = tx.send(GameStatus::Singleplayer);
                         } else if l.contains("Connecting to") {
-                            // Ex: [Client thread/INFO]: Connecting to localhost, 25565
-                            let ip = l.split("Connecting to ").nth(1)
-                                .unwrap_or("Unknown")
-                                .split(',')
-                                .next()
-                                .unwrap_or("Unknown")
-                                .trim()
-                                .to_string();
-                            let _ = tx.send(GameStatus::Multiplayer { ip });
+                            // Expected format: "... Connecting to <address>, <port>"
+                            if let Some(after_connecting) = l.split("Connecting to ").nth(1) {
+                                // We replace the comma with a colon to follow standard IP:PORT format
+                                // "localhost, 25565" -> "localhost:25565"
+                                let full_address = after_connecting
+                                    .replace(",", ":")      // Swap comma for colon
+                                    .split_whitespace()      // Remove any trailing words (like "...")
+                                    .collect::<String>()
+                                    .trim()
+                                    .to_string();
+                        
+                                let _ = tx.send(GameStatus::Multiplayer { ip: full_address });
+                            }
                         } else if l.contains("Returning to meta-menu") {
                             let _ = tx.send(GameStatus::Menu);
                         }
@@ -72,7 +76,7 @@ impl GameInstance {
     pub fn exit_code(&mut self) -> Option<i32> {
         match self.process.try_wait() {
             Ok(Some(status)) => status.code(), // Extracts the integer code (0, 1, etc.)
-            _ => None, // Still running or couldn't retrieve status
+            _ => None,                         // Still running or couldn't retrieve status
         }
     }
 }
